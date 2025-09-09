@@ -7,15 +7,19 @@ import Timetable from './pages/Timetable'
 import Admin from './pages/Admin'
 import Dataset from './pages/Dataset'
 import ClassTimetable from './pages/ClassTimetable'
+import Login from './pages/Login'
 
 function App() {
   return (
     <Routes>
       {/* User Routes */}
+      <Route path='/login' element={<Login />} />
       <Route path='/' element={<Sidebar />}>
         <Route index element={<Timetable />} />
       </Route>
-
+      <Route path='/teacher' element={<Sidebar />}>
+        <Route index element={<Timetable />} />
+      </Route>
       {/* Admin Routes */}
       <Route path='/admin' element={<AdminSidebar />}>
         <Route index element={<Admin />} />
