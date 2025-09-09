@@ -38,9 +38,28 @@ function Login() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h2>Login Page</h2>
-      <form onSubmit={handleLogin} style={{ display: "inline-block" }}>
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "linear-gradient(to right, #6a11cb, #2575fc)",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <form
+        onSubmit={handleLogin}
+        style={{
+          background: "white",
+          padding: "40px",
+          borderRadius: "12px",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+          width: "320px",
+          textAlign: "center",
+        }}
+      >
+        <h2 style={{ marginBottom: "20px", color: "#333" }}>Login</h2>
         <div>
           <input
             type="text"
@@ -48,7 +67,13 @@ function Login() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
-            style={{ padding: "8px", margin: "5px" }}
+            style={{
+              width: "100%",
+              padding: "10px",
+              margin: "8px 0",
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+            }}
           />
         </div>
         <div>
@@ -58,17 +83,33 @@ function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            style={{ padding: "8px", margin: "5px" }}
+            style={{
+              width: "100%",
+              padding: "10px",
+              margin: "8px 0",
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+            }}
           />
         </div>
         <button
           type="submit"
-          style={{ padding: "10px 20px", marginTop: "10px", cursor: "pointer" }}
+          style={{
+            width: "100%",
+            padding: "12px",
+            marginTop: "15px",
+            background: "#2575fc",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+            fontSize: "16px",
+          }}
         >
           Login
         </button>
+        {error && <p style={{ color: "red", marginTop: "15px" }}>{error}</p>}
       </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }
