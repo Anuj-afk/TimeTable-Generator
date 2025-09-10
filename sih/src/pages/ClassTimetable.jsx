@@ -1,21 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ClassTimetable = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedClass, setSelectedClass] = useState(null);
+    const [timetableData, setTimetableData] = useState({ classes: {} });
+    const [loading, setLoading] = useState(true);
 
-    // Example class timetable data - replace with your actual data
-    const classTimetables = {
-        "Class 10A": [
-            { day: "Monday", periods: ["Math", "Physics", "Break", "Chemistry", "English", "CS", "History", "Geography"] },
-            { day: "Tuesday", periods: ["Physics", "Math", "Break", "CS", "Chemistry", "English", "Geography", "History"] },
-            // Add more days...
-        ],
-        "Class 11B": [
-            { day: "Monday", periods: ["CS", "Math", "Break", "Physics", "Chemistry", "English", "Geography", "History"] },
-            { day: "Tuesday", periods: ["English", "CS", "Break", "Math", "Physics", "Chemistry", "History", "Geography"] },
-            // Add more days...
-        ],
+    useEffect(() => {
+        fetchTimetableData();
+    }, []);
+
+    const fetchTimetableData = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('http://localhost:5000/get-timetables');
+            const data = await response.json();
+            setTimetableData(data);
+        } catch (error) {
+            console.error('Error fetching timetable data:', error);
+            // Fallback to dummy data
+            setTimetableData({
+                classes: {
+                    "10A": [
+                        { day: "Monday", periods: ["Math", "Physics", "Break", "Chemistry", "English", "CS", "History", "Geography"] },
+                        { day: "Tuesday", periods: ["Physics", "Math", "Break", "CS", "Chemistry", "English", "Geography", "History"] },
+                    ],
+                }
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSearch = (e) => {
@@ -23,12 +37,22 @@ const ClassTimetable = () => {
         setSearchQuery(query);
         
         // If the class exists in our data, select it
-        if (classTimetables[query]) {
+        if (timetableData.classes[query]) {
             setSelectedClass(query);
         } else {
             setSelectedClass(null);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="p-6">
+                <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6">
@@ -39,14 +63,14 @@ const ClassTimetable = () => {
                 <div className="relative">
                     <input
                         type="text"
-                        placeholder="Search class (e.g., Class 10A)"
+                        placeholder="Search class (e.g., 10A, 11B)"
                         value={searchQuery}
                         onChange={handleSearch}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         list="class-list"
                     />
                     <datalist id="class-list">
-                        {Object.keys(classTimetables).map(className => (
+                        {Object.keys(timetableData.classes).map(className => (
                             <option key={className} value={className} />
                         ))}
                     </datalist>
@@ -54,7 +78,7 @@ const ClassTimetable = () => {
             </div>
 
             {/* Timetable Display */}
-            {selectedClass && classTimetables[selectedClass] && (
+            {selectedClass && timetableData.classes[selectedClass] && (
                 <div className="bg-white shadow-lg rounded-lg p-6">
                     <h2 className="text-lg font-semibold mb-4">
                         {selectedClass} Timetable
@@ -74,7 +98,7 @@ const ClassTimetable = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {classTimetables[selectedClass].map((day, index) => (
+                                {timetableData.classes[selectedClass].map((day, index) => (
                                     <tr key={index}>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {day.day}

@@ -6,11 +6,13 @@ const Dataset = () => {
     const [tableData, setTableData] = useState([]);
     const [headers, setHeaders] = useState([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [uploadedFile, setUploadedFile] = useState(null);
 
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
+        setUploadedFile(file);
         const fileExt = file.name.split('.').pop().toLowerCase();
 
         if (fileExt === 'csv') {
@@ -45,13 +47,69 @@ const Dataset = () => {
         reader.readAsArrayBuffer(file);
     };
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
+        if (!uploadedFile) {
+            alert('Please upload a file first');
+            return;
+        }
+
+        console.log('🚀 Starting timetable generation...');
         setIsGenerating(true);
-        // Add your timetable generation logic here
-        setTimeout(() => {
+
+        try {
+            const formData = new FormData();
+            formData.append('file', uploadedFile);
+
+            console.log('📤 Sending file to backend...');
+            
+            const response = await fetch('http://localhost:5000/generate-timetable', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                
+                if (blob.size === 0) {
+                    throw new Error('Received empty file from server');
+                }
+
+                // Save the generated file for later reading
+                const saveFormData = new FormData();
+                saveFormData.append('file', blob, 'latest_timetables.xlsx');
+                
+                fetch('http://localhost:5000/save-latest-timetable', {
+                    method: 'POST',
+                    body: saveFormData,
+                }).catch(err => console.warn('Could not save latest timetable:', err));
+
+                // Download the file
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'generated_timetables.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                alert('Timetable generated and downloaded successfully!');
+                
+            } else {
+                const errorText = await response.text();
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    throw new Error(errorJson.error || 'Server error');
+                } catch (parseError) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error in handleGenerate:', error);
+            alert(`Error generating timetable: ${error.message}`);
+        } finally {
             setIsGenerating(false);
-            // Handle the generated timetable
-        }, 2000);
+        }
     };
 
     return (
@@ -72,6 +130,11 @@ const Dataset = () => {
                                 file:bg-purple-50 file:text-purple-700
                                 hover:file:bg-purple-100"
                         />
+                        {uploadedFile && (
+                            <p className="text-sm text-gray-600">
+                                Selected: {uploadedFile.name} ({(uploadedFile.size / 1024).toFixed(2)} KB)
+                            </p>
+                        )}
                     </div>
 
                     {/* Data Display */}
